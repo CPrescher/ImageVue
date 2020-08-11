@@ -1,9 +1,9 @@
 <template>
   <v-row>
-    <v-col class="col-3">
+    <v-col class="col-3" md="3">
       <GeneratorCard></GeneratorCard>
     </v-col>
-    <v-col class="d-flex justify-center" cols="6">
+    <v-col class="d-flex justify-center" cols="9">
       <image-plot />
     </v-col>
   </v-row>

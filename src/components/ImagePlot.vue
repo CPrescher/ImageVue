@@ -1,5 +1,7 @@
 <template>
-  <div id="graph" />
+  <v-sheet outlined class="v-sheet">
+    <div id="graph" />
+  </v-sheet>
 </template>
 
 <script>
@@ -21,5 +23,9 @@ export default {
 <style scoped>
 #graph {
   z-index: 2;
+}
+
+.v-sheet {
+  z-index: 1;
 }
 </style>
