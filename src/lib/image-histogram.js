@@ -9,8 +9,8 @@ export default class ImageHistogram {
     left: 20,
     between: 10
   };
-  width = 100;
-  height = 400;
+  #width = 100;
+  #height = 400;
   histPlot;
   histPath;
   colorScaleBar;
@@ -28,15 +28,40 @@ export default class ImageHistogram {
   rangeChanged = new Subject();
   colorLut;
   #clip;
+  #plotWidth;
+  #plotHeight;
   #colorBarWidth;
+  #colorBarHeight;
 
-  constructor(selector) {
+  set width(newWidth) {
+    this.#width = newWidth;
+    this.#plotWidth =
+      ((newWidth - this.margin.left - this.margin.right) * 2) / 3;
+    this.#colorBarWidth = (newWidth - this.margin.left - this.margin.right) / 3;
+  }
+
+  get width() {
+    return this.#width;
+  }
+
+  get height() {
+    return this.#height;
+  }
+
+  set height(newHeight) {
+    this.#height = newHeight;
+    this.#plotHeight = newHeight - this.margin.top - this.margin.bottom;
+    this.#colorBarHeight = this.#plotHeight;
+  }
+
+  constructor(selector, width = 100, height = 300) {
+    this.width = width;
+    this.height = height;
+
     this.selector = selector;
     this.colorScale = d3
       .scaleSequential(d3.interpolateInferno)
       .domain([0, 65123]);
-
-    this._plotWidth = (this.width * 2) / 3;
 
     this.#colorBarWidth = this.width / 3;
     this._initPlot();
@@ -51,14 +76,14 @@ export default class ImageHistogram {
     this.histPlot = d3
       .select(this.selector)
       .append("svg")
-      .attr("width", this._plotWidth + this.margin.left)
-      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .attr("width", this.#plotWidth + this.margin.left)
+      .attr("height", this.height)
       .append("g")
       .attr(
         "transform",
         "translate(" + this.margin.left + "," + this.margin.top + ")"
       )
-      .attr("width", this._plotWidth)
+      .attr("width", this.#plotWidth)
       .on("contextmenu", () => {
         d3.event.preventDefault();
       });
@@ -73,7 +98,7 @@ export default class ImageHistogram {
       .append("rect")
       .attr("x", 0)
       .attr("y", 0)
-      .attr("width", this._plotWidth)
+      .attr("width", this.#plotWidth)
       .attr("height", this.height);
   }
 
@@ -81,18 +106,18 @@ export default class ImageHistogram {
     this.x = d3
       .scaleLog()
       .domain([1e-10, 100])
-      .range([0, this._plotWidth]);
+      .range([0, this.#plotWidth]);
 
     this.xAxis = this.histPlot
       .append("g")
-      .attr("transform", "translate(0, " + this.height + ")")
+      .attr("transform", "translate(0, " + this.#plotHeight + ")")
       .call(d3.axisBottom(this.x));
 
     // add Y Axis
     this.y = d3
       .scaleLog()
       .domain([1e-10, 100])
-      .range([this.height, 0]);
+      .range([this.#plotHeight, 0]);
 
     this.yAxis = this.histPlot.append("g").call(d3.axisLeft(this.y));
   }
@@ -100,7 +125,7 @@ export default class ImageHistogram {
   _initBrush() {
     this.brush = d3.brushY().extent([
       [0, -this.height / 2],
-      [this._plotWidth, this.height * 1.5]
+      [this.#plotWidth, this.height * 1.5]
     ]);
 
     this.brushElement = this.histPlot
@@ -128,32 +153,33 @@ export default class ImageHistogram {
         "width",
         this.#colorBarWidth + this.margin.right - this.margin.between / 2
       )
-      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .attr("height", this.height)
       .append("g")
       .attr(
         "transform",
         "translate(" + this.margin.between + "," + this.margin.top + ")"
       )
       .attr("width", this.#colorBarWidth)
+      .attr("height", this.#colorBarHeight)
       .on("contextmenu", () => {
         d3.event.preventDefault();
       });
 
     let colorScale = d3
       .scaleSequential(d3.interpolateInferno)
-      .domain([0, this.height]);
+      .domain([0, this.#plotHeight]);
 
     // let bars = this.colorScaleBar
     this.colorScaleBar
       .selectAll(".bars")
-      .data(d3.range(this.height), d => {
+      .data(d3.range(this.#plotHeight), d => {
         return d;
       })
       .enter()
       .append("rect")
       .attr("class", "bars")
       .attr("y", (d, i) => {
-        return this.height - i;
+        return this.#plotHeight - i;
       })
       .attr("x", 0)
       .attr("height", 1)

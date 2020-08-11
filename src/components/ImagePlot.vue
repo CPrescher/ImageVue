@@ -12,10 +12,10 @@ export default {
   name: "ImagePlot",
   mounted() {
     this.imagePlot = new ImagePlot("#graph");
-    const width = 2048;
-    const height = 2048;
-    const imageData = createRandomImage(width, height);
-    this.imagePlot.plotImage(imageData, width, height);
+    const imageWidth = 2048;
+    const imageHeight = 2048;
+    const imageData = createRandomImage(imageWidth, imageHeight);
+    this.imagePlot.plotImage(imageData, imageWidth, imageHeight);
   }
 };
 </script>

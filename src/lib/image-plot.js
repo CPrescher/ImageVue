@@ -14,8 +14,11 @@ export default class ImagePlot {
     bottom: 30,
     left: 60
   };
-  width = 400;
-  height = 400;
+
+  histogramWidth = 150;
+  #canvasWidth = 600;
+  #canvasHeight = 400;
+
   fixedAspectRatio = true;
 
   SVG;
@@ -41,7 +44,47 @@ export default class ImagePlot {
   #imageMaterial;
   #brushContext;
 
-  constructor(selector) {
+  get width() {
+    return this.canvasWidth + this.margin.left + this.margin.right;
+  }
+
+  set width(newWidth) {
+    this.#canvasWidth =
+      newWidth - this.margin.left - this.margin.right - this.histogramWidth;
+  }
+
+  get height() {
+    return this.canvasHeight + this.margin.top + this.margin.bottom;
+  }
+
+  set height(newHeight) {
+    this.#canvasHeight = newHeight - this.margin.top - this.margin.bottom;
+  }
+
+  get canvasWidth() {
+    if (this.fixedAspectRatio) {
+      if (this.#canvasWidth > this.#canvasHeight) {
+        return this.#canvasHeight;
+      }
+    }
+    return this.#canvasWidth;
+  }
+
+  get canvasHeight() {
+    if (this.fixedAspectRatio) {
+      if (this.#canvasHeight > this.#canvasWidth) {
+        return this.#canvasWidth;
+      }
+    }
+    return this.#canvasHeight;
+  }
+
+  constructor(selector, width = 600, height = 400, fixedAspectRatio = true) {
+    this.fixedAspectRatio = fixedAspectRatio;
+    this.width = width;
+    this.height = height;
+
+    console.log(this);
     this._initImagePlot(selector);
     this._initHistogram(selector);
   }
@@ -83,8 +126,8 @@ export default class ImagePlot {
     this._initRightClickBehavior();
   }
 
-  _initHistogram(selector) {
-    this.#histogram = new ImageHistogram(selector);
+  _initHistogram(selector, width = 150) {
+    this.#histogram = new ImageHistogram(selector, width, this.height);
     this.#histogram.rangeChanged.subscribe(() => {
       updateRange();
     });
@@ -110,8 +153,8 @@ export default class ImagePlot {
     this.SVG = d3
       .select(selector)
       .append("svg")
-      .attr("width", this.width + this.margin.left + this.margin.right)
-      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .attr("width", this.canvasWidth + this.margin.left + this.margin.right)
+      .attr("height", this.canvasHeight + this.margin.top + this.margin.bottom)
       .append("g")
       .attr(
         "transform",
@@ -126,17 +169,17 @@ export default class ImagePlot {
     this.x = d3
       .scaleLinear()
       .domain([0, this.imageWidth])
-      .range([0, this.width]);
+      .range([0, this.canvasWidth]);
 
     this.xAxis = this.SVG.append("g")
-      .attr("transform", "translate(0, " + this.height + ")")
+      .attr("transform", "translate(0, " + this.canvasHeight + ")")
       .call(d3.axisBottom(this.x));
 
     // add Y Axis
     this.y = d3
       .scaleLinear()
       .domain([0, this.imageHeight])
-      .range([this.height, 0]);
+      .range([this.canvasHeight, 0]);
 
     this.yAxis = this.SVG.append("g").call(d3.axisLeft(this.y));
   }
@@ -147,8 +190,8 @@ export default class ImagePlot {
       .append("rect")
       .attr("x", 0)
       .attr("y", 0)
-      .attr("width", this.width)
-      .attr("height", this.height);
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight);
   }
 
   _initImage() {
@@ -162,8 +205,8 @@ export default class ImagePlot {
       .style("position", "relative")
       .style("z-index", "-1")
       .attr("id", "foreignObject")
-      .attr("height", this.width)
-      .attr("width", this.height)
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight)
       .attr("x", 0)
       .attr("y", 0);
 
@@ -171,8 +214,8 @@ export default class ImagePlot {
       .append("xhtml:canvas")
       .attr("id", "webglCanvas")
       .attr("ref", "webglCanvas")
-      .attr("height", this.width)
-      .attr("width", this.height)
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight)
       .attr("x", 0)
       .attr("y", 0);
 
@@ -240,7 +283,7 @@ export default class ImagePlot {
       .brush()
       .extent([
         [0, 0],
-        [this.width, this.height]
+        [this.canvasWidth, this.canvasHeight]
       ])
       .on("end", updateChartBrush);
 
