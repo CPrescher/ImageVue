@@ -1,16 +1,22 @@
 <template>
-  <div class="home">
-    <image-plot />
-  </div>
+  <v-row>
+    <v-col class="col-3">
+      <GeneratorCard></GeneratorCard>
+    </v-col>
+    <v-col class="d-flex justify-center" cols="6">
+      <image-plot />
+    </v-col>
+  </v-row>
 </template>
 
 <script>
-// @ is an alias to /src
-
 import ImagePlot from "@/components/ImagePlot";
+import GeneratorCard from "@/components/GeneratorCard";
 
 export default {
   name: "Home",
-  components: { ImagePlot }
+  components: { GeneratorCard, ImagePlot }
 };
 </script>
+
+<style scoped></style>

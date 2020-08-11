@@ -52,6 +52,7 @@ export default class ImagePlot {
     this.imageHeight = height;
     this.#histogram.updateImage(imageArray);
     let colorImageArray = this.#histogram.calcColorImage(imageArray);
+
     this._updateTexture(colorImageArray, width, height);
     this._updateDomain(0, this.imageWidth, 0, this.imageHeight);
     this._update();
@@ -105,6 +106,7 @@ export default class ImagePlot {
   }
 
   _initSVG(selector) {
+    console.log(this.margin.left);
     this.SVG = d3
       .select(selector)
       .append("svg")
@@ -159,6 +161,7 @@ export default class ImagePlot {
       .attr("clip-path", "url(#clip)")
       .style("position", "relative")
       .style("z-index", "-1")
+      .attr("id", "foreignObject")
       .attr("height", this.width)
       .attr("width", this.height)
       .attr("x", 0)
@@ -167,6 +170,7 @@ export default class ImagePlot {
     this.#webGlCanvas = this.#foreignObject
       .append("xhtml:canvas")
       .attr("id", "webglCanvas")
+      .attr("ref", "webglCanvas")
       .attr("height", this.width)
       .attr("width", this.height)
       .attr("x", 0)
@@ -174,6 +178,8 @@ export default class ImagePlot {
 
     this.#canvas = document.getElementById("webglCanvas");
     this.#canvasContext = this.#canvas.getContext("webgl");
+    console.log(this.#canvas);
+    console.log(this.#canvasContext);
   }
 
   _initTHREE() {
@@ -181,6 +187,12 @@ export default class ImagePlot {
     this.#camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 100000);
     this.#camera.position.z = 10000;
     this.#renderer = new THREE.WebGLRenderer({ canvas: this.#canvas });
+    // this.#renderer.setClearColor(new THREE.Color("rgb(0,0,0)"));
+    // this.#renderer = new THREE.WebGLRenderer();
+    // this.#renderer.setSize(this.width, this.height);
+    // document
+    //   .getElementById("foreignObject")
+    //   .appendChild(this.#renderer.domElement);
 
     this._initImagePlane();
     this.#renderer.render(this.#scene, this.#camera);
