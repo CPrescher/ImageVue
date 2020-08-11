@@ -11,8 +11,11 @@ export default class ImageHistogram {
   };
   #width = 100;
   #height = 400;
+
+  #histPlotRoot;
   histPlot;
   histPath;
+  #colorScaleBarRoot;
   colorScaleBar;
   colorScale;
   x;
@@ -63,7 +66,6 @@ export default class ImageHistogram {
       .scaleSequential(d3.interpolateInferno)
       .domain([0, 65123]);
 
-    this.#colorBarWidth = this.width / 3;
     this._initPlot();
 
     this._initClip();
@@ -73,11 +75,13 @@ export default class ImageHistogram {
   }
 
   _initPlot() {
-    this.histPlot = d3
+    this.#histPlotRoot = d3
       .select(this.selector)
       .append("svg")
       .attr("width", this.#plotWidth + this.margin.left)
-      .attr("height", this.height)
+      .attr("height", this.height);
+
+    this.histPlot = this.#histPlotRoot
       .append("g")
       .attr(
         "transform",
@@ -138,22 +142,35 @@ export default class ImageHistogram {
     let brushed = () => {
       let min = this.y.invert(d3.event.selection[1]);
       let max = this.y.invert(d3.event.selection[0]);
-      this.colorScale.domain([min, max]);
-      this.rangeChanged.next([min, max]);
+      this._updateColorScale(min, max);
     };
 
     this.brush.on("brush end", brushed);
   }
 
+  _updateColorScale(min, max) {
+    this.colorScale.domain([min, max]);
+    this.rangeChanged.next([min, max]);
+  }
+
+  brushed() {
+    let min = this.y.invert(d3.event.selection[1]);
+    let max = this.y.invert(d3.event.selection[0]);
+    this.colorScale.domain([min, max]);
+    this.rangeChanged.next([min, max]);
+  }
+
   initColorBar() {
-    this.colorScaleBar = d3
+    this.#colorScaleBarRoot = d3
       .select(this.selector)
       .append("svg")
       .attr(
         "width",
         this.#colorBarWidth + this.margin.right - this.margin.between / 2
       )
-      .attr("height", this.height)
+      .attr("height", this.height);
+
+    this.colorScaleBar = this.#colorScaleBarRoot
       .append("g")
       .attr(
         "transform",
@@ -169,7 +186,6 @@ export default class ImageHistogram {
       .scaleSequential(d3.interpolateInferno)
       .domain([0, this.#plotHeight]);
 
-    // let bars = this.colorScaleBar
     this.colorScaleBar
       .selectAll(".bars")
       .data(d3.range(this.#plotHeight), d => {
@@ -246,6 +262,7 @@ export default class ImageHistogram {
         xy.push({ x: this.hist.binCenters[i], y: this.hist.data[i] });
       }
     }
+
     this.x.domain([dataMin, d3.max(this.hist.data)]);
     this.y.domain([d3.min(this.hist.binCenters), this.hist.max]);
     this._updateAxes();
@@ -349,5 +366,79 @@ export default class ImageHistogram {
           .ticks(20)
           .tickFormat(() => "")
       );
+  }
+
+  resize(width, height) {
+    this.width = width;
+    this.height = height;
+
+    this.#histPlotRoot
+      .attr("width", this.#plotWidth + this.margin.left)
+      .attr("height", this.height);
+
+    this.histPlot
+      .attr("width", this.#plotWidth)
+      .attr("height", this.#plotHeight);
+
+    this.#clip.attr("width", this.#plotWidth).attr("height", this.height);
+
+    this.x.range([0, this.#plotWidth]);
+    this.xAxis.attr("transform", "translate(0, " + this.#plotHeight + ")");
+    this.y.range([this.#plotHeight, 0]);
+
+    this.brush.extent([
+      [0, -this.height / 2],
+      [this.#plotWidth, this.height * 1.5]
+    ]);
+    this.brushElement.call(this.brush);
+
+    this.#colorScaleBarRoot
+      .attr(
+        "width",
+        this.#colorBarWidth + this.margin.right - this.margin.between / 2
+      )
+      .attr("height", this.height);
+    this.colorScaleBar
+      .attr("width", this.#colorBarWidth)
+      .attr("height", this.#colorBarHeight);
+
+    let colorScaleBars = this.colorScaleBar
+      .selectAll(".bars")
+      .data(d3.range(this.#plotHeight), d => {
+        return d;
+      });
+
+    let colorScale = d3
+      .scaleSequential(d3.interpolateInferno)
+      .domain([0, this.#plotHeight]);
+
+    colorScaleBars
+      .transition()
+      .attr("class", "bars")
+      .attr("y", (d, i) => {
+        return this.#plotHeight - i;
+      })
+      .attr("x", 0)
+      .attr("height", 1)
+      .attr("width", this.#colorBarWidth)
+      .style("fill", function(d) {
+        return colorScale(d);
+      });
+
+    colorScaleBars
+      .enter()
+      .append("rect")
+      .attr("class", "bars")
+      .attr("y", (d, i) => {
+        return this.#plotHeight - i;
+      })
+      .attr("x", 0)
+      .attr("height", 1)
+      .attr("width", this.#colorBarWidth)
+      .style("fill", function(d) {
+        return colorScale(d);
+      });
+
+    colorScaleBars.exit().remove();
   }
 }

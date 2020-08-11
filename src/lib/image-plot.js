@@ -21,6 +21,7 @@ export default class ImagePlot {
 
   fixedAspectRatio = true;
 
+  rootSVG;
   SVG;
   x;
   xAxis;
@@ -42,10 +43,17 @@ export default class ImagePlot {
   #imageGeometry;
   #imageTexture;
   #imageMaterial;
+  #brush;
+  #brushLayer;
   #brushContext;
 
   get width() {
-    return this.canvasWidth + this.margin.left + this.margin.right;
+    return (
+      this.canvasWidth +
+      this.margin.left +
+      this.margin.right +
+      this.histogramWidth
+    );
   }
 
   set width(newWidth) {
@@ -84,7 +92,6 @@ export default class ImagePlot {
     this.width = width;
     this.height = height;
 
-    console.log(this);
     this._initImagePlot(selector);
     this._initHistogram(selector);
   }
@@ -93,6 +100,7 @@ export default class ImagePlot {
     this.imageArray = imageArray;
     this.imageWidth = width;
     this.imageHeight = height;
+
     this.#histogram.updateImage(imageArray);
     let colorImageArray = this.#histogram.calcColorImage(imageArray);
 
@@ -149,12 +157,13 @@ export default class ImagePlot {
   }
 
   _initSVG(selector) {
-    console.log(this.margin.left);
-    this.SVG = d3
+    this.rootSVG = d3
       .select(selector)
       .append("svg")
       .attr("width", this.canvasWidth + this.margin.left + this.margin.right)
-      .attr("height", this.canvasHeight + this.margin.top + this.margin.bottom)
+      .attr("height", this.canvasHeight + this.margin.top + this.margin.bottom);
+
+    this.SVG = this.rootSVG
       .append("g")
       .attr(
         "transform",
@@ -185,7 +194,7 @@ export default class ImagePlot {
   }
 
   _initClip() {
-    this.clip = this.SVG.append("clipPath")
+    this.#clip = this.SVG.append("clipPath")
       .attr("id", "clip")
       .append("rect")
       .attr("x", 0)
@@ -221,8 +230,6 @@ export default class ImagePlot {
 
     this.#canvas = document.getElementById("webglCanvas");
     this.#canvasContext = this.#canvas.getContext("webgl");
-    console.log(this.#canvas);
-    console.log(this.#canvasContext);
   }
 
   _initTHREE() {
@@ -272,14 +279,14 @@ export default class ImagePlot {
           this.y.invert(extent[1][1]),
           this.y.invert(extent[0][1])
         );
-        this.#brushContext.select(".brush").call(brush.move, null); // this removes the grey brush area as soon as
+        this.#brushContext.select(".brush").call(this.#brush.move, null); // this removes the grey brush area as soon as
         // the selection has been done
       }
       this._update();
     };
 
     // add brushing
-    let brush = d3
+    this.#brush = d3
       .brush()
       .extent([
         [0, 0],
@@ -287,10 +294,10 @@ export default class ImagePlot {
       ])
       .on("end", updateChartBrush);
 
-    this.#brushContext
+    this.#brushLayer = this.#brushContext
       .append("g")
       .attr("class", "brush")
-      .call(brush);
+      .call(this.#brush);
   }
 
   _initMousePosition() {
@@ -472,7 +479,7 @@ export default class ImagePlot {
     // this.updateData();
   }
 
-  _updateAxes(duration = 500) {
+  _updateAxes(duration = 400) {
     this.xAxis
       .transition()
       .duration(duration)
@@ -514,5 +521,42 @@ export default class ImagePlot {
     this.#renderer.render(this.#scene, this.#camera);
 
     this.#canvasContext = this.#canvas.getContext("webgl");
+  }
+
+  resize(width, height) {
+    this.width = width;
+    this.height = height;
+
+    this.rootSVG
+      .attr("width", this.canvasWidth + this.margin.left + this.margin.right)
+      .attr("height", this.canvasHeight + this.margin.top + this.margin.bottom);
+
+    this.x.range([0, this.canvasWidth]);
+    this.xAxis.attr("transform", "translate(0, " + this.canvasHeight + ")");
+    this.y.range([this.canvasHeight, 0]);
+
+    this._updateAxes();
+
+    this.#clip
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight);
+
+    this.#foreignObject
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight);
+
+    this.#webGlCanvas
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight);
+
+    this.#renderer.setSize(this.canvasWidth, this.canvasHeight);
+
+    this.#brush.extent([
+      [0, 0],
+      [this.canvasWidth, this.canvasHeight]
+    ]);
+    this.#brushLayer.call(this.#brush);
+
+    this.#histogram.resize(this.histogramWidth, height);
   }
 }
