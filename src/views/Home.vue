@@ -1,9 +1,9 @@
 <template>
-  <v-row>
-    <v-col class="col-3" md="3">
+  <v-row class="home-row">
+    <v-col cols="3">
       <GeneratorCard></GeneratorCard>
     </v-col>
-    <v-col class="d-flex justify-center" cols="9">
+    <v-col  cols="9">
       <image-plot />
     </v-col>
   </v-row>
@@ -19,4 +19,8 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style>
+.home-row {
+  height: 100%;
+}
+</style>
