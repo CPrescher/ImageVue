@@ -25,6 +25,7 @@ export default class ImageHistogram {
 
   hist;
   histLine;
+  histXY;
   brush;
   brushElement;
 
@@ -64,7 +65,7 @@ export default class ImageHistogram {
     this.selector = selector;
     this.colorScale = d3
       .scaleSequential(d3.interpolateInferno)
-      .domain([0, 65123]);
+      .domain([1, 65123]);
 
     this._initPlot();
 
@@ -139,13 +140,18 @@ export default class ImageHistogram {
       .call(this.brush)
       .call(this.brush.move, [0, this.height]);
 
-    let brushed = () => {
-      let min = this.y.invert(d3.event.selection[1]);
-      let max = this.y.invert(d3.event.selection[0]);
-      this._updateColorScale(min, max);
-    };
+    // let brushed = () => {
+    // };
 
-    this.brush.on("brush end", brushed);
+    this.brush.on("brush end", () => {
+      this._brushed();
+    });
+  }
+
+  _brushed() {
+    let min = this.y.invert(d3.event.selection[1]);
+    let max = this.y.invert(d3.event.selection[0]);
+    this._updateColorScale(min, max);
   }
 
   _updateColorScale(min, max) {
@@ -245,21 +251,24 @@ export default class ImageHistogram {
   }
 
   plotHistogram() {
-    const xy = [];
+    this.histXY = [];
     let dataMin = Infinity;
     for (let i = 0; i < this.hist.data.length; i++) {
       if (this.hist.data[i] !== 0 && this.hist.binCenters[i] !== 0) {
         if (this.hist.data[i] < dataMin) {
           dataMin = this.hist.data[i];
         }
-        xy.push({ x: this.hist.binCenters[i], y: this.hist.data[i] });
+        this.histXY.push({ x: this.hist.binCenters[i], y: this.hist.data[i] });
       }
     }
 
     this.x.domain([dataMin, d3.max(this.hist.data)]);
     this.y.domain([d3.min(this.hist.binCenters), this.hist.max]);
     this._updateAxes();
+    this._updateHistogramLine();
+  }
 
+  _updateHistogramLine() {
     this.histLine = d3
       .line()
       .x(d => {
@@ -270,7 +279,7 @@ export default class ImageHistogram {
       });
 
     //Create line
-    let path = this.histPath.selectAll("path").data([xy]);
+    let path = this.histPath.selectAll("path").data([this.histXY]);
     path
       .transition()
       .duration(200)
@@ -373,17 +382,36 @@ export default class ImageHistogram {
       .attr("width", this.#plotWidth)
       .attr("height", this.#plotHeight);
 
-    this.#clip.attr("width", this.#plotWidth).attr("height", this.height);
-
     this.x.range([0, this.#plotWidth]);
     this.xAxis.attr("transform", "translate(0, " + this.#plotHeight + ")");
     this.y.range([this.#plotHeight, 0]);
+    this.yAxis
+      .transition()
+      .duration(0)
+      .call(
+        d3
+          .axisLeft(this.y)
+          .ticks(20)
+          .tickFormat(() => "")
+      );
+
+    this.#clip.attr("width", this.#plotWidth).attr("height", this.height);
+    this._updateHistogramLine();
 
     this.brush.extent([
       [0, -this.height / 2],
       [this.#plotWidth, this.height * 1.5]
     ]);
-    this.brushElement.call(this.brush);
+
+    this.brush.on("brush end", null);
+    let newBrushSelection = [
+      this.y(this.colorScale.domain()[1]),
+      this.y(this.colorScale.domain()[0])
+    ];
+    this.brushElement.call(this.brush).call(this.brush.move, newBrushSelection);
+    this.brush.on("brush end", () => {
+      this._brushed();
+    });
 
     this.#colorScaleBarRoot
       .attr(
@@ -407,6 +435,7 @@ export default class ImageHistogram {
 
     colorScaleBars
       .transition()
+      .duration(0)
       .attr("class", "bars")
       .attr("y", (d, i) => {
         return this.#plotHeight - i;

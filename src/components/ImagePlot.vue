@@ -41,10 +41,9 @@ export default {
 
     this.throttleResize = _.throttle(() => {
       const width = this.$refs.graphSheet.$el.clientWidth;
-      const height = this.$refs.graphSheet.$el.clientHeight - 10;
+      const height = this.$refs.graphSheet.$el.clientHeight;
       this.imagePlot.resize(width, 200);
       this.imagePlot.resize(width, height);
-      console.log(height);
     }, 50);
   }
 };

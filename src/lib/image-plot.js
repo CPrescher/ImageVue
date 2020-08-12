@@ -535,7 +535,7 @@ export default class ImagePlot {
     this.xAxis.attr("transform", "translate(0, " + this.canvasHeight + ")");
     this.y.range([this.canvasHeight, 0]);
 
-    this._updateAxes();
+    this._updateAxes(0);
 
     this.#clip
       .attr("width", this.canvasWidth)
