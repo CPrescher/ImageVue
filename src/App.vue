@@ -11,6 +11,7 @@
 
 <script>
 import TopNav from "@/components/TopNav";
+
 export default {
   name: "App",
 
@@ -23,11 +24,7 @@ export default {
 </script>
 
 <style lang="scss">
-#app {
-  z-index: -1;
-}
-
-.v-main {
-  z-index: 0;
+html {
+  overflow-y: hidden;
 }
 </style>
