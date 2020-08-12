@@ -153,13 +153,6 @@ export default class ImageHistogram {
     this.rangeChanged.next([min, max]);
   }
 
-  brushed() {
-    let min = this.y.invert(d3.event.selection[1]);
-    let max = this.y.invert(d3.event.selection[0]);
-    this.colorScale.domain([min, max]);
-    this.rangeChanged.next([min, max]);
-  }
-
   initColorBar() {
     this.#colorScaleBarRoot = d3
       .select(this.selector)
