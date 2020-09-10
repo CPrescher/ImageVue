@@ -33,7 +33,7 @@ export default {
   },
   watch: {
     imageData() {
-      this.imagePlot.plotImage(this.imageData, this.imageWidth, this.imageHeight);
+      this.throttlePlotImage();
     }
   },
   mounted() {
@@ -43,7 +43,9 @@ export default {
       this.$refs.graphSheet.$el.clientHeight,
       false
     );
-    this.imagePlot.plotImage(this.imageData, this.imageWidth, this.imageHeight);
+    this.throttlePlotImage = _.throttle(()=> {
+          this.imagePlot.plotImage(this.imageData, this.imageWidth, this.imageHeight);
+    },50);
 
     this.throttleResize = _.throttle(() => {
       const width = this.$refs.graphSheet.$el.clientWidth;
@@ -51,6 +53,8 @@ export default {
       this.imagePlot.resize(width, 200);
       this.imagePlot.resize(width, height);
     }, 50);
+
+    this.throttlePlotImage();
   }
 };
 </script>
