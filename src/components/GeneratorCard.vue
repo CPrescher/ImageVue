@@ -92,6 +92,14 @@ export default {
       yDim: 2048
     };
   },
+  watch: {
+    xDim () {
+      this.generateRandomImage()
+    },
+    yDim () {
+      this.generateRandomImage()
+    }
+  },
   methods: {
     generateRandomImage() {
       this.$store.dispatch('generateRandomImage', { imageWidth: this.xDim, imageHeight: this.yDim })
