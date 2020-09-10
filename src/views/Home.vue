@@ -1,7 +1,12 @@
 <template>
   <v-row class="home-row">
     <v-col cols="3">
-      <GeneratorCard></GeneratorCard>
+      <v-row>
+        <GeneratorCard></GeneratorCard>
+      </v-row>
+      <v-row class="mt-2">
+        <KaraboImageCard/>
+      </v-row>
     </v-col>
     <v-col  cols="9">
       <image-plot />
@@ -12,10 +17,11 @@
 <script>
 import ImagePlot from "@/components/ImagePlot";
 import GeneratorCard from "@/components/GeneratorCard";
+import KaraboImageCard from '@/components/KaraboImageCard';
 
 export default {
   name: "Home",
-  components: { GeneratorCard, ImagePlot }
+  components: { KaraboImageCard, GeneratorCard, ImagePlot }
 };
 </script>
 

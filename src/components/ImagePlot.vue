@@ -14,9 +14,10 @@
 
 <script>
 import _ from "lodash";
+import { mapGetters } from 'vuex';
 
 import ImagePlot from "@/lib/image-plot";
-import { createRandomImage } from "@/lib/image-generation";
+// import { createRandomImage } from "@/lib/image-generation";
 
 export default {
   name: "ImagePlot",
@@ -27,6 +28,14 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapGetters(['imageData', 'imageWidth', 'imageHeight'])
+  },
+  watch: {
+    imageData() {
+      this.imagePlot.plotImage(this.imageData, this.imageWidth, this.imageHeight);
+    }
+  },
   mounted() {
     this.imagePlot = new ImagePlot(
       "#graph",
@@ -34,10 +43,7 @@ export default {
       this.$refs.graphSheet.$el.clientHeight,
       false
     );
-    const imageWidth = 2048;
-    const imageHeight = 2048;
-    const imageData = createRandomImage(imageWidth, imageHeight);
-    this.imagePlot.plotImage(imageData, imageWidth, imageHeight);
+    this.imagePlot.plotImage(this.imageData, this.imageWidth, this.imageHeight);
 
     this.throttleResize = _.throttle(() => {
       const width = this.$refs.graphSheet.$el.clientWidth;
