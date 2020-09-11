@@ -29,7 +29,11 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['imageData', 'imageWidth', 'imageHeight'])
+    ...mapGetters( {
+      imageData: 'image/data',
+      imageWidth: 'image/width',
+      imageHeight: 'image/height'}
+      )
   },
   watch: {
     imageData() {
@@ -43,6 +47,7 @@ export default {
       this.$refs.graphSheet.$el.clientHeight,
       false
     );
+
     this.throttlePlotImage = _.throttle(()=> {
           this.imagePlot.plotImage(this.imageData, this.imageWidth, this.imageHeight);
     },50);

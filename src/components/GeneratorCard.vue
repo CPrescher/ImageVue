@@ -7,47 +7,8 @@
         <v-col md="auto" class="pa-0 ma-0 mr-2">
           <v-btn class="px-2" @click="generateRandomImage">Noise</v-btn>
         </v-col>
-        <v-col md="auto" class="pa-0 ma-0">
-          <v-btn class="px-2">Gaussian</v-btn>
-        </v-col>
       </v-row>
       <v-divider class="my-2"/>
-      <v-row class="m">
-        <v-spacer/>
-        <v-col md="auto" class="pa-1">
-          <v-btn x-small class="pa-1"
-          >
-            <v-icon small>mdi-arrow-left</v-icon>
-          </v-btn
-          >
-        </v-col>
-
-        <v-col md="auto" class="pa-1">
-          <v-btn x-small class="pa-1"
-          >
-            <v-icon small>mdi-arrow-right</v-icon>
-          </v-btn
-          >
-        </v-col>
-
-        <v-col md="auto" class="pa-1">
-          <v-btn x-small class="pa-1"
-          >
-            <v-icon small>mdi-arrow-up</v-icon>
-          </v-btn
-          >
-        </v-col>
-
-        <v-col md="auto" class="pa-1">
-          <v-btn x-small class="pa-1"
-          >
-            <v-icon small>mdi-arrow-down</v-icon>
-          </v-btn
-          >
-        </v-col>
-      </v-row>
-      <v-divider class="my-2"/>
-
       <v-row align="center">
         <v-spacer/>
         <v-col md="auto" class="pa-1">
@@ -77,6 +38,23 @@
           />
         </v-col>
       </v-row>
+      <v-divider/>
+      <v-row>
+        <v-col>
+          <v-btn v-if="!moviePlaying" class="px-2" @click="startMovie">Start Movie</v-btn>
+          <v-btn v-else class="px-2" @click="stopMovie">Stop Movie</v-btn>
+        </v-col>
+        <v-col>
+          <v-text-field
+              label="FPS"
+              type="number"
+              step="5"
+              class="mt-0"
+              reverse
+              v-model="fps"
+          />
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
 </template>
@@ -89,7 +67,10 @@ export default {
   data () {
     return {
       xDim: 2048,
-      yDim: 2048
+      yDim: 2048,
+      moviePlaying: false,
+      movieInterval: 1,
+      fps: 20
     };
   },
   watch: {
@@ -98,13 +79,31 @@ export default {
     },
     yDim () {
       this.generateRandomImage()
+    },
+    fps () {
+      if(this.moviePlaying) {
+        this.stopMovie();
+        this.startMovie();
+      }
     }
   },
   methods: {
-    generateRandomImage() {
-      this.$store.dispatch('generateRandomImage', { imageWidth: this.xDim, imageHeight: this.yDim })
+    generateRandomImage () {
+      this.$store.dispatch('image/generateRandomImage', { width: this.xDim, height: this.yDim })
     },
-  }
+    startMovie () {
+      if (this.moviePlaying) return;
+      this.moviePlaying = true;
+      this.movieInterval = setInterval(() => {
+        this.generateRandomImage();
+      }, 1/this.fps*1000)
+    },
+    stopMovie () {
+      if (!this.moviePlaying) return;
+      this.moviePlaying = false;
+      clearInterval(this.movieInterval);
+    }
+  },
 };
 </script>
 
