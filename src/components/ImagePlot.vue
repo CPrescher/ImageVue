@@ -17,6 +17,7 @@ import _ from "lodash";
 import { mapGetters } from 'vuex';
 
 import ImagePlot from "@/lib/image-plot";
+import { createRandomImage } from '@/lib/image-generation';
 // import { createRandomImage } from "@/lib/image-generation";
 
 export default {
@@ -26,7 +27,27 @@ export default {
       if (this.imagePlot) {
         this.throttleResize();
       }
-    }
+    },
+    startMovie() {
+      if (this.movieRunning) return;
+      this.movieRunning = true;
+
+      let imageWidth = 2512;
+      let imageHeight = 2512;
+
+      let numImages = 10;
+      let randomImages = new Array(numImages);
+      for (let i = 0; i < numImages; i++) {
+        randomImages[i] = createRandomImage(imageWidth, imageHeight);
+      }
+      let imageInd = 0;
+
+      this.movieId = setInterval(() => {
+        this.imagePlot.plotImage(randomImages[imageInd], imageWidth, imageHeight);
+        imageInd++;
+        if (imageInd === 5) imageInd = 0;
+      }, 1);
+    },
   },
   computed: {
     ...mapGetters( {
@@ -50,7 +71,7 @@ export default {
 
     this.throttlePlotImage = _.throttle(()=> {
           this.imagePlot.plotImage(this.imageData, this.imageWidth, this.imageHeight);
-    },50);
+    },15);
 
     this.throttleResize = _.throttle(() => {
       const width = this.$refs.graphSheet.$el.clientWidth;

@@ -27,10 +27,6 @@ const mutations = {
 };
 
 const actions = {
-  generateRandomImage: ({ commit }, payload) => {
-    payload.data = createRandomImage(payload.width, payload.height);
-    commit('updateImage', payload);
-  }
 };
 
 export default {

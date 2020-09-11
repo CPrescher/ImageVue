@@ -210,9 +210,9 @@ export default class ImageHistogram {
     let max = -Infinity;
     const length = imageData.length;
 
-    for (const item of imageData) {
-      if (item < min) min = item;
-      else if (item > max) max = item;
+    for (let i = 0; i < length; i++) {
+      if (imageData[i] < min) min = imageData[i];
+      else if (imageData[i] > max) max = imageData[i];
     }
 
     // get histogram
@@ -246,7 +246,10 @@ export default class ImageHistogram {
   }
 
   updateImage(imageData) {
+    let t1 = Date.now();
     this.calculateHistogram(imageData);
+    console.log(Date.now() - t1);
+
     this.plotHistogram();
   }
 
@@ -298,12 +301,10 @@ export default class ImageHistogram {
   }
 
   calcColorImage(imageArray) {
-    let colorImageArray = new Uint8ClampedArray(imageArray.length * 3);
+    let colorImageArray = new Uint8Array(imageArray.length * 3);
     let pos = 0;
     let c;
-    let t1 = Date.now();
     this.calcColorLut();
-    console.log(Date.now() - t1);
     for (let i = 0; i < imageArray.length; i++) {
       c = this.colorLut[imageArray[i]];
       pos = i * 3;
