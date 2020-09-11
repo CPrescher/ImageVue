@@ -47,14 +47,9 @@
           <v-btn v-else class="px-2" @click="stopMovie">Stop Movie</v-btn>
         </v-col>
         <v-col>
-          <v-text-field
-            label="FPS"
-            type="number"
-            step="5"
-            class="mt-0"
-            reverse
-            v-model="fps"
-          />
+          <v-container>
+            FPS: {{ fps }}
+          </v-container>
         </v-col>
       </v-row>
     </v-card-text>
@@ -63,6 +58,7 @@
 
 <script>
 import { mapActions } from "vuex";
+import _ from "lodash";
 
 export default {
   name: "GeneratorCard",
@@ -70,7 +66,8 @@ export default {
     return {
       movieId: 0,
       movieRunning: false,
-      fps: 2
+      fps: 2,
+      frameTimes: []
     };
   },
   computed: {
@@ -111,8 +108,17 @@ export default {
       this.movieRunning = true;
       this.initMovieArray();
 
+      let t1 = Date.now()
+      this.frameTimes = [];
+
       this.movieId = setInterval(() => {
         this.nextMovieImage();
+        this.frameTimes.push(Date.now() - t1);
+        this.fps = Math.floor(10000/_.mean(this.frameTimes))/10;
+        if(this.frameTimes.length>100) {
+          this.frameTimes.shift();
+        }
+        t1 = Date.now()
       }, 1);
     },
     stopMovie() {

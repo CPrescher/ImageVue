@@ -246,10 +246,7 @@ export default class ImageHistogram {
   }
 
   updateImage(imageData) {
-    let t1 = Date.now();
     this.calculateHistogram(imageData);
-    console.log(Date.now() - t1);
-
     this.plotHistogram();
   }
 
