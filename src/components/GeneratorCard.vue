@@ -17,11 +17,15 @@
         <v-col class="pa-1">
           <v-text-field
             label="X"
+            :rules="rules"
+            min="100"
+            max="3000"
             type="number"
             step="100"
             class="mt-0"
             reverse
             v-model="imageWidth"
+            ref="imageWidthInput"
           />
         </v-col>
         <v-col md="auto" class="pa-1">
@@ -31,10 +35,14 @@
           <v-text-field
             label="Y"
             type="number"
+            :rules="rules"
+            min="100"
+            max="3000"
             step="100"
             class="mt-0"
             reverse
             v-model="imageHeight"
+            ref="imageHeightInput"
           />
         </v-col>
       </v-row>
@@ -67,7 +75,12 @@ export default {
       movieId: 0,
       movieRunning: false,
       fps: 2,
-      frameTimes: []
+      frameTimes: [],
+      rules:[
+        v => !!v || 'Required',
+        v => v >= 1 || 'Dimension should be above 1',
+        v => v <= 3000 || 'Max dimension should not be above 5000',
+      ],
     };
   },
   computed: {
@@ -76,7 +89,14 @@ export default {
         return this.$store.getters["generator/imageWidth"];
       },
       set(value) {
-        this.$store.commit("generator/updateImageWidth", value);
+        if (value > 3000) {
+          this.$store.commit("generator/updateImageWidth", 3000);
+        } else if (value <= 0) {
+          this.$store.commit("generator/updateImageWidth", 1);
+        } else {
+          this.$store.commit("generator/updateImageWidth", value);
+        }
+
         if (this.movieRunning) {
           this.stopMovie();
           this.startMovie();
@@ -88,7 +108,13 @@ export default {
         return this.$store.getters["generator/imageHeight"];
       },
       set(value) {
-        this.$store.commit("generator/updateImageHeight", value);
+        if (value > 3000) {
+          this.$store.commit("generator/updateImageHeight", 3000);
+        } else if (value <= 0) {
+          this.$store.commit("generator/updateImageHeight", 1);
+        } else {
+          this.$store.commit("generator/updateImageHeight", value);
+        }
         if (this.movieRunning) {
           this.stopMovie();
           this.startMovie();
@@ -96,6 +122,7 @@ export default {
       }
     }
   },
+
   methods: {
     ...mapActions("generator", [
       "generateRandomImage",
