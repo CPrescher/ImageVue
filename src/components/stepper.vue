@@ -7,7 +7,7 @@
       <v-col class="pa-0 pr-2 pl-2 ma-0" cols="6">
         <v-text-field
           class="pa-0"
-          label="index"
+          :label="label"
           :value="index"
           reverse
           @change="fieldChanged($event)"
@@ -35,6 +35,10 @@ export default {
     max: {
       type: Number,
       default: 100
+    },
+    label: {
+      type: String,
+      default: "index"
     }
   },
   data: () => {

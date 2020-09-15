@@ -33,8 +33,19 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-spacer />
-        <stepper v-model="imageIndex"></stepper>
+        <v-col>
+          <!--          <v-progress-linear height="10" rounded indeterminate v-if="loading" class="mt-4"></v-progress-linear>-->
+          <v-progress-circular
+            height="10"
+            indeterminate
+            v-if="loading"
+            class="mt-0"
+            style="margin: 0 auto;"
+          ></v-progress-circular>
+        </v-col>
+        <v-col>
+          <stepper v-model="imageIndex"></stepper>
+        </v-col>
       </v-row>
       <v-row>
         <v-col>
@@ -65,6 +76,7 @@ export default {
       selectedSource: "",
       trainIDs: [],
       imageIndex: 0,
+      loading: 0,
 
       width: 0,
       height: 0,
@@ -81,13 +93,15 @@ export default {
   },
   watch: {
     selectedSource(source) {
-      this.socket.emit(
-        "read_data",
-        { source: source, key: "data.image.pixels" },
-        this.receiveImage
-      );
+      this.loading++;
+      this.socket.emit("read_data", {
+        source: source,
+        key: "data.image.pixels"
+      });
+      this.socket.emit("get_frame", this.imageIndex, this.receiveImage);
     },
     imageIndex(index) {
+      this.loading++;
       this.socket.emit("get_frame", index, this.receiveImage);
     }
   },
@@ -110,6 +124,7 @@ export default {
       });
       this.width = image.shape[0];
       this.height = image.shape[1];
+      this.loading--;
     },
     readDimension() {}
   },
