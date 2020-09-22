@@ -94,9 +94,11 @@ export default {
   watch: {
     selectedSource(source) {
       this.loading++;
+      let key = "data.image.pixels";
+      if (source.includes("DET")) key = "data.adc";
       this.socket.emit("read_data", {
         source: source,
-        key: "data.image.pixels"
+        key
       });
       this.socket.emit("get_frame", this.imageIndex, this.receiveImage);
     },
@@ -110,6 +112,7 @@ export default {
       let camSources = [];
       for (let source of sources) {
         if (source.includes("CAM")) camSources.push(source);
+        else if (source.includes("DET")) camSources.push(source);
       }
       camSources.sort();
       this.selectedSource = camSources[0];
@@ -119,8 +122,8 @@ export default {
       let image = NumpyLoader.fromArrayBuffer(data);
       this.$store.commit("image/updateImage", {
         data: image.data,
-        width: image.shape[0],
-        height: image.shape[1]
+        width: image.shape[1],
+        height: image.shape[0]
       });
       this.width = image.shape[0];
       this.height = image.shape[1];
