@@ -1,7 +1,7 @@
-import * as d3 from 'd3';
-import * as THREE from 'three';
+import * as d3 from "d3";
+import * as THREE from "three";
 
-import ImageHistogram from './image-histogram';
+import ImageHistogram from "./image-histogram";
 
 export default class ImagePlot {
   imageWidth = 2048;
@@ -47,29 +47,29 @@ export default class ImagePlot {
   #brushLayer;
   #brushContext;
 
-  get width () {
+  get width() {
     return (
-        this.canvasWidth +
-        this.margin.left +
-        this.margin.right +
-        this.histogramWidth
+      this.canvasWidth +
+      this.margin.left +
+      this.margin.right +
+      this.histogramWidth
     );
   }
 
-  set width (newWidth) {
+  set width(newWidth) {
     this.#canvasWidth =
-        newWidth - this.margin.left - this.margin.right - this.histogramWidth;
+      newWidth - this.margin.left - this.margin.right - this.histogramWidth;
   }
 
-  get height () {
+  get height() {
     return this.canvasHeight + this.margin.top + this.margin.bottom;
   }
 
-  set height (newHeight) {
+  set height(newHeight) {
     this.#canvasHeight = newHeight - this.margin.top - this.margin.bottom;
   }
 
-  get canvasWidth () {
+  get canvasWidth() {
     if (this.fixedAspectRatio) {
       if (this.#canvasWidth > this.#canvasHeight) {
         return this.#canvasHeight;
@@ -78,7 +78,7 @@ export default class ImagePlot {
     return this.#canvasWidth;
   }
 
-  get canvasHeight () {
+  get canvasHeight() {
     if (this.fixedAspectRatio) {
       if (this.#canvasHeight > this.#canvasWidth) {
         return this.#canvasWidth;
@@ -87,7 +87,7 @@ export default class ImagePlot {
     return this.#canvasHeight;
   }
 
-  constructor (selector, width = 600, height = 400, fixedAspectRatio = true) {
+  constructor(selector, width = 600, height = 400, fixedAspectRatio = true) {
     this.fixedAspectRatio = fixedAspectRatio;
     this.width = width;
     this.height = height;
@@ -96,7 +96,11 @@ export default class ImagePlot {
     this._initHistogram(selector);
   }
 
-  plotImage (imageArray, width, height) {
+  plotImage(imageArray, width, height) {
+    let updateDomain = false;
+    if (width !== this.imageWidth || height !== this.imageHeight) {
+      updateDomain = true;
+    }
     this.imageArray = imageArray;
     this.imageWidth = width;
     this.imageHeight = height;
@@ -105,25 +109,26 @@ export default class ImagePlot {
     let colorImageArray = this.#histogram.calcColorImage(imageArray);
 
     this._updateTexture(colorImageArray, width, height);
-    this._updateDomain(0, this.imageWidth, 0, this.imageHeight);
+    if (updateDomain)
+      this._updateDomain(0, this.imageWidth, 0, this.imageHeight);
     this._update();
   }
 
-  zoom (factor) {
+  zoom(factor) {
     let currentWidth = this.x.domain()[1] - this.x.domain()[0];
     let currentHeight = this.y.domain()[1] - this.y.domain()[0];
     let mouseXFrac = (this.mouseX - this.x.domain()[0]) / currentWidth;
     let mouseYFrac = (this.mouseY - this.y.domain()[0]) / currentHeight;
     let newLeft = this.x.domain()[0] - mouseXFrac * currentWidth * factor;
     let newRight =
-        this.x.domain()[1] + (1 - mouseXFrac) * currentWidth * factor;
+      this.x.domain()[1] + (1 - mouseXFrac) * currentWidth * factor;
     let newBottom = this.y.domain()[0] - mouseYFrac * currentHeight * factor;
     let newTop = this.y.domain()[1] + (1 - mouseYFrac) * currentHeight * factor;
     this._updateDomain(newLeft, newRight, newBottom, newTop);
     this._update();
   }
 
-  _initImagePlot (selector) {
+  _initImagePlot(selector) {
     this._initSVG(selector);
     this._initAxes();
     this._initImage();
@@ -134,7 +139,7 @@ export default class ImagePlot {
     this._initRightClickBehavior();
   }
 
-  _initHistogram (selector, width = 150) {
+  _initHistogram(selector, width = 150) {
     this.#histogram = new ImageHistogram(selector, width, this.height);
     this.#histogram.rangeChanged.subscribe(() => {
       updateRange();
@@ -156,83 +161,83 @@ export default class ImagePlot {
     };
   }
 
-  _initSVG (selector) {
+  _initSVG(selector) {
     this.rootSVG = d3
-        .select(selector)
-        .append('svg')
-        .attr('width', this.canvasWidth + this.margin.left + this.margin.right)
-        .attr('height', this.canvasHeight + this.margin.top + this.margin.bottom);
+      .select(selector)
+      .append("svg")
+      .attr("width", this.canvasWidth + this.margin.left + this.margin.right)
+      .attr("height", this.canvasHeight + this.margin.top + this.margin.bottom);
 
     this.SVG = this.rootSVG
-        .append('g')
-        .attr(
-            'transform',
-            'translate(' + this.margin.left + ',' + this.margin.top + ')'
-        )
-        .on('contextmenu', () => {
-          d3.event.preventDefault();
-        });
+      .append("g")
+      .attr(
+        "transform",
+        "translate(" + this.margin.left + "," + this.margin.top + ")"
+      )
+      .on("contextmenu", () => {
+        d3.event.preventDefault();
+      });
   }
 
-  _initAxes () {
+  _initAxes() {
     this.x = d3
-        .scaleLinear()
-        .domain([0, this.imageWidth])
-        .range([0, this.canvasWidth]);
+      .scaleLinear()
+      .domain([0, this.imageWidth])
+      .range([0, this.canvasWidth]);
 
-    this.xAxis = this.SVG.append('g')
-        .attr('transform', 'translate(0, ' + this.canvasHeight + ')')
-        .call(d3.axisBottom(this.x));
+    this.xAxis = this.SVG.append("g")
+      .attr("transform", "translate(0, " + this.canvasHeight + ")")
+      .call(d3.axisBottom(this.x));
 
     // add Y Axis
     this.y = d3
-        .scaleLinear()
-        .domain([0, this.imageHeight])
-        .range([this.canvasHeight, 0]);
+      .scaleLinear()
+      .domain([0, this.imageHeight])
+      .range([this.canvasHeight, 0]);
 
-    this.yAxis = this.SVG.append('g').call(d3.axisLeft(this.y));
+    this.yAxis = this.SVG.append("g").call(d3.axisLeft(this.y));
   }
 
-  _initClip () {
-    this.#clip = this.SVG.append('clipPath')
-        .attr('id', 'clip')
-        .append('rect')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('width', this.canvasWidth)
-        .attr('height', this.canvasHeight);
+  _initClip() {
+    this.#clip = this.SVG.append("clipPath")
+      .attr("id", "clip")
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight);
   }
 
-  _initImage () {
+  _initImage() {
     this._initCanvas();
     this._initTHREE();
   }
 
-  _initCanvas () {
-    this.#foreignObject = this.SVG.append('foreignObject')
-        .attr('clip-path', 'url(#clip)')
-        .style('position', 'relative')
-        .style('z-index', '-1')
-        .attr('id', 'foreignObject')
-        .attr('width', this.canvasWidth)
-        .attr('height', this.canvasHeight)
-        .attr('x', 0)
-        .attr('y', 0);
+  _initCanvas() {
+    this.#foreignObject = this.SVG.append("foreignObject")
+      .attr("clip-path", "url(#clip)")
+      .style("position", "relative")
+      .style("z-index", "-1")
+      .attr("id", "foreignObject")
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight)
+      .attr("x", 0)
+      .attr("y", 0);
 
     this.#webGlCanvas = this.#foreignObject
-        .append('xhtml:canvas')
-        .attr('id', 'webglCanvas')
-        .attr('ref', 'webglCanvas')
-        .attr('width', this.canvasWidth)
-        .attr('height', this.canvasHeight)
-        .attr('x', 0)
-        .attr('y', 0);
+      .append("xhtml:canvas")
+      .attr("id", "webglCanvas")
+      .attr("ref", "webglCanvas")
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight)
+      .attr("x", 0)
+      .attr("y", 0);
 
-    this.#canvas = document.getElementById('webglCanvas');
-    this.#canvasContext = this.#canvas.getContext('webgl');
+    this.#canvas = document.getElementById("webglCanvas");
+    this.#canvasContext = this.#canvas.getContext("webgl");
   }
 
-  _initTHREE () {
+  _initTHREE() {
     this.#scene = new THREE.Scene();
     this.#camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 100000);
     this.#camera.position.z = 10000;
@@ -248,13 +253,13 @@ export default class ImagePlot {
     this.#renderer.render(this.#scene, this.#camera);
   }
 
-  _initImagePlane () {
+  _initImagePlane() {
     this.#imageGeometry = new THREE.PlaneGeometry(1, 1);
     this.#imageTexture = new THREE.DataTexture(
-        new Uint8Array([0, 0, 0]),
-        1,
-        1,
-        THREE.RGBFormat
+      new Uint8Array([0, 0, 0]),
+      1,
+      1,
+      THREE.RGBFormat
     );
     this.#imageMaterial = new THREE.MeshBasicMaterial({
       map: this.#imageTexture
@@ -266,21 +271,21 @@ export default class ImagePlot {
     this.#scene.add(plane);
   }
 
-  _initBrush () {
-    this.#brushContext = this.SVG.append('g')
-        .attr('id', 'brushContext')
-        .attr('class', 'brushContext');
+  _initBrush() {
+    this.#brushContext = this.SVG.append("g")
+      .attr("id", "brushContext")
+      .attr("class", "brushContext");
 
     let updateChartBrush = () => {
       let extent = d3.event.selection;
       if (extent) {
         this._updateDomain(
-            this.x.invert(extent[0][0]),
-            this.x.invert(extent[1][0]),
-            this.y.invert(extent[1][1]),
-            this.y.invert(extent[0][1])
+          this.x.invert(extent[0][0]),
+          this.x.invert(extent[1][0]),
+          this.y.invert(extent[1][1]),
+          this.y.invert(extent[0][1])
         );
-        this.#brushContext.select('.brush').call(this.#brush.move, null); // this removes the grey brush area as soon as
+        this.#brushContext.select(".brush").call(this.#brush.move, null); // this removes the grey brush area as soon as
         // the selection has been done
       }
       this._update();
@@ -288,20 +293,20 @@ export default class ImagePlot {
 
     // add brushing
     this.#brush = d3
-        .brush()
-        .extent([
-          [0, 0],
-          [this.canvasWidth, this.canvasHeight]
-        ])
-        .on('end', updateChartBrush);
+      .brush()
+      .extent([
+        [0, 0],
+        [this.canvasWidth, this.canvasHeight]
+      ])
+      .on("end", updateChartBrush);
 
     this.#brushLayer = this.#brushContext
-        .append('g')
-        .attr('class', 'brush')
-        .call(this.#brush);
+      .append("g")
+      .attr("class", "brush")
+      .call(this.#brush);
   }
 
-  _initMousePosition () {
+  _initMousePosition() {
     let updateMousePosition = () => {
       let left = this.x.domain()[0];
       let right = this.x.domain()[1];
@@ -311,23 +316,23 @@ export default class ImagePlot {
       let currentWidth = right - left;
       let currentHeight = Math.abs(top - bottom);
 
-      let brushContext = document.getElementById('brushContext');
+      let brushContext = document.getElementById("brushContext");
       let boundingRect = brushContext.getBoundingClientRect();
 
       this.mouseX =
-          left +
-          ((d3.event.x - boundingRect.left) / boundingRect.width) * currentWidth;
+        left +
+        ((d3.event.x - boundingRect.left) / boundingRect.width) * currentWidth;
       this.mouseY =
-          bottom +
-          ((boundingRect.height - (d3.event.y - boundingRect.top)) /
-              boundingRect.height) *
+        bottom +
+        ((boundingRect.height - (d3.event.y - boundingRect.top)) /
+          boundingRect.height) *
           currentHeight;
     };
 
-    this.#brushContext.on('mousemove', updateMousePosition);
+    this.#brushContext.on("mousemove", updateMousePosition);
   }
 
-  _initWheel () {
+  _initWheel() {
     let wheelUpdate = () => {
       let left = this.x.domain()[0];
       let right = this.x.domain()[1];
@@ -337,16 +342,16 @@ export default class ImagePlot {
       let currentWidth = Math.abs(right - left);
       let currentHeight = Math.abs(bottom - top);
 
-      let brushContext = document.getElementById('brushContext');
+      let brushContext = document.getElementById("brushContext");
       let boundingRect = brushContext.getBoundingClientRect();
 
       let mouseX =
-          left +
-          ((d3.event.x - boundingRect.left) / boundingRect.width) * currentWidth;
+        left +
+        ((d3.event.x - boundingRect.left) / boundingRect.width) * currentWidth;
       let mouseY =
-          bottom +
-          ((boundingRect.height - (d3.event.y - boundingRect.top)) /
-              boundingRect.height) *
+        bottom +
+        ((boundingRect.height - (d3.event.y - boundingRect.top)) /
+          boundingRect.height) *
           currentHeight;
 
       let factor = -d3.event.deltaY / 1000;
@@ -360,10 +365,10 @@ export default class ImagePlot {
       this._update();
     };
 
-    this.#brushContext.on('wheel', wheelUpdate);
+    this.#brushContext.on("wheel", wheelUpdate);
   }
 
-  _initRightClickBehavior () {
+  _initRightClickBehavior() {
     let dragMouseStartX;
     let dragMouseStartY;
     let domainXDragStart;
@@ -376,12 +381,12 @@ export default class ImagePlot {
         //only for right click
         if (event.detail === 1) {
           // only for single click
-          let brushContext = document.getElementById('brushContext');
+          let brushContext = document.getElementById("brushContext");
           dragMouseStartX = this.mouseX;
           dragMouseStartY = this.mouseY;
           domainXDragStart = this.x.domain();
           domainYDragStart = this.y.domain();
-          brushContext.addEventListener('mousemove', rightDragMove);
+          brushContext.addEventListener("mousemove", rightDragMove);
         } // only for single clicks
       }
     };
@@ -405,26 +410,26 @@ export default class ImagePlot {
       let currentWidth = right - left;
       let currentHeight = Math.abs(top - bottom);
 
-      let brushContext = document.getElementById('brushContext');
+      let brushContext = document.getElementById("brushContext");
       let boundingRect = brushContext.getBoundingClientRect();
 
       let mouseX =
-          left +
-          ((event.x - boundingRect.left) / boundingRect.width) * currentWidth;
+        left +
+        ((event.x - boundingRect.left) / boundingRect.width) * currentWidth;
       let mouseY =
-          bottom +
-          ((boundingRect.height - (event.y - boundingRect.top)) /
-              boundingRect.height) *
+        bottom +
+        ((boundingRect.height - (event.y - boundingRect.top)) /
+          boundingRect.height) *
           currentHeight;
 
       let deltaX = mouseX - dragMouseStartX;
       let deltaY = mouseY - dragMouseStartY;
 
       this._updateDomain(
-          left - deltaX,
-          right - deltaX,
-          bottom - deltaY,
-          top - deltaY
+        left - deltaX,
+        right - deltaX,
+        bottom - deltaY,
+        top - deltaY
       );
       this._update(0);
 
@@ -445,17 +450,17 @@ export default class ImagePlot {
             this._update();
           }
         }
-        let brushContext = document.getElementById('brushContext');
-        brushContext.removeEventListener('mousemove', rightDragMove);
+        let brushContext = document.getElementById("brushContext");
+        brushContext.removeEventListener("mousemove", rightDragMove);
       }
       dragging = false;
     };
 
-    this.#brushContext.on('mousedown', rightDragStart);
-    this.#brushContext.on('mouseup', rightDragStop);
+    this.#brushContext.on("mousedown", rightDragStart);
+    this.#brushContext.on("mouseup", rightDragStop);
   }
 
-  _updateDomain (left, right, bottom, top) {
+  _updateDomain(left, right, bottom, top) {
     if (this.fixedAspectRatio) {
       let width = right - left;
       let height = top - bottom;
@@ -474,24 +479,24 @@ export default class ImagePlot {
     this.y.domain([bottom, top]);
   }
 
-  _update (duration = 500) {
+  _update(duration = 500) {
     this._updateAxes(duration);
     this._updateCamera();
     // this.updateData();
   }
 
-  _updateAxes (duration = 400) {
+  _updateAxes(duration = 400) {
     this.xAxis
-        .transition()
-        .duration(duration)
-        .call(d3.axisBottom(this.x));
+      .transition()
+      .duration(duration)
+      .call(d3.axisBottom(this.x));
     this.yAxis
-        .transition()
-        .duration(duration)
-        .call(d3.axisLeft(this.y));
+      .transition()
+      .duration(duration)
+      .call(d3.axisLeft(this.y));
   }
 
-  _updateCamera () {
+  _updateCamera() {
     let left = this.x.domain()[0];
     let right = this.x.domain()[1];
     let bottom = this.y.domain()[0];
@@ -506,44 +511,43 @@ export default class ImagePlot {
     this.#renderer.render(this.#scene, this.#camera);
   }
 
-  _updateTexture (imageArray, width, height) {
+  _updateTexture(imageArray, width, height) {
     this.#imageTexture.dispose();
     this.#imageTexture = new THREE.DataTexture(
-        imageArray,
-        width,
-        height,
-        THREE.RGBFormat
+      imageArray,
+      width,
+      height,
+      THREE.RGBFormat
     );
     this.#imageMaterial.map = this.#imageTexture;
     this.#renderer.render(this.#scene, this.#camera);
-
   }
 
-  resize (width, height) {
+  resize(width, height) {
     this.width = width;
     this.height = height;
 
     this.rootSVG
-        .attr('width', this.canvasWidth + this.margin.left + this.margin.right)
-        .attr('height', this.canvasHeight + this.margin.top + this.margin.bottom);
+      .attr("width", this.canvasWidth + this.margin.left + this.margin.right)
+      .attr("height", this.canvasHeight + this.margin.top + this.margin.bottom);
 
     this.x.range([0, this.canvasWidth]);
-    this.xAxis.attr('transform', 'translate(0, ' + this.canvasHeight + ')');
+    this.xAxis.attr("transform", "translate(0, " + this.canvasHeight + ")");
     this.y.range([this.canvasHeight, 0]);
 
     this._updateAxes(0);
 
     this.#clip
-        .attr('width', this.canvasWidth)
-        .attr('height', this.canvasHeight);
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight);
 
     this.#foreignObject
-        .attr('width', this.canvasWidth)
-        .attr('height', this.canvasHeight);
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight);
 
     this.#webGlCanvas
-        .attr('width', this.canvasWidth)
-        .attr('height', this.canvasHeight);
+      .attr("width", this.canvasWidth)
+      .attr("height", this.canvasHeight);
 
     this.#renderer.setSize(this.canvasWidth, this.canvasHeight);
 
