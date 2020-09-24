@@ -1,6 +1,8 @@
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 
+import BrushY from "./BrushY";
+
 export default class ImageHistogram {
   margin = {
     top: 10,
@@ -128,29 +130,18 @@ export default class ImageHistogram {
   }
 
   _initBrush() {
-    this.brush = d3.brushY().extent([
+    this.brush = new BrushY(
+      this.histPlot,
       [0, -this.height / 2],
-      [this.#plotWidth, this.height * 1.5]
-    ]);
-
-    this.brushElement = this.histPlot
-      .append("g")
-      .attr("class", "brush")
-      .attr("clip-path", "url(#clip)")
-      .call(this.brush)
-      .call(this.brush.move, [0, this.height]);
-
-    // let brushed = () => {
-    // };
-
-    this.brush.on("brush end", () => {
-      this._brushed();
-    });
+      [this.#plotWidth, this.height * 1.5],
+      [0, this.height]
+    );
+    this.brush.brushEnded.subscribe(selection => this._brushed(selection));
   }
 
-  _brushed() {
-    let min = this.y.invert(d3.event.selection[1]);
-    let max = this.y.invert(d3.event.selection[0]);
+  _brushed(selection) {
+    let min = this.y.invert(selection[0]);
+    let max = this.y.invert(selection[1]);
     this._updateColorScale(min, max);
   }
 
@@ -396,20 +387,14 @@ export default class ImageHistogram {
     this.#clip.attr("width", this.#plotWidth).attr("height", this.height);
     this._updateHistogramLine();
 
-    this.brush.extent([
+    this.brush.resize(
       [0, -this.height / 2],
       [this.#plotWidth, this.height * 1.5]
-    ]);
-
-    this.brush.on("brush end", null);
-    let newBrushSelection = [
+    );
+    this.brush.select([
       this.y(this.colorScale.domain()[1]),
       this.y(this.colorScale.domain()[0])
-    ];
-    this.brushElement.call(this.brush).call(this.brush.move, newBrushSelection);
-    this.brush.on("brush end", () => {
-      this._brushed();
-    });
+    ]);
 
     this.#colorScaleBarRoot
       .attr(
