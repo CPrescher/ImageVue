@@ -85,13 +85,13 @@ export default {
     };
   },
   mounted() {
-    this.socket.emit(
-      "open_run",
-      { proposal: this.experiment, run: this.run },
-      this.updateSources
-    );
+    this.openRun();
   },
   watch: {
+    run(run) {
+      this.openRun();
+      console.log(run);
+    },
     selectedSource(source) {
       this.loading++;
       let key = "data.image.pixels";
@@ -108,6 +108,14 @@ export default {
     }
   },
   methods: {
+    openRun() {
+      this.socket.emit(
+          "open_run",
+          { proposal: this.experiment, run: this.run },
+          this.updateSources
+      );
+    },
+
     updateSources(sources) {
       let camSources = [];
       for (let source of sources) {
