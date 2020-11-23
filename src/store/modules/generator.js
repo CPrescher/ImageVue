@@ -38,7 +38,7 @@ const mutations = {
     }
   },
   incrementMovieIndex: state => {
-    if (state.movieImageIndex < (state.movieImageNum-1)) {
+    if (state.movieImageIndex < state.movieImageNum - 1) {
       state.movieImageIndex += 1;
     } else {
       state.movieImageIndex = 0;
@@ -49,13 +49,12 @@ const mutations = {
   },
   updateImageHeight: (state, height) => {
     state.imageHeight = height;
-  },
-
+  }
 };
 
 const actions = {
-  initMovieArray: ({commit}) => {
-    commit('initMovieArray', 10)
+  initMovieArray: ({ commit }) => {
+    commit("initMovieArray", 10);
   },
   generateRandomImage: ({ commit, getters }) => {
     let payload = {

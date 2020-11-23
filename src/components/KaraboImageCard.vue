@@ -110,9 +110,9 @@ export default {
   methods: {
     openRun() {
       this.socket.emit(
-          "open_run",
-          { proposal: this.experiment, run: this.run },
-          this.updateSources
+        "open_run",
+        { proposal: this.experiment, run: this.run },
+        this.updateSources
       );
     },
 

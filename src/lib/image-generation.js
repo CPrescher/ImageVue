@@ -1,4 +1,4 @@
-export function createRandomImage (width, height, maxIntensity = 64000) {
+export function createRandomImage(width, height, maxIntensity = 64000) {
   let size = width * height;
   let data = new Uint16Array(size);
   let index;
@@ -12,7 +12,7 @@ export function createRandomImage (width, height, maxIntensity = 64000) {
   return data;
 }
 
-export function createAscendingImage (width, height, maxIntensity = 64000) {
+export function createAscendingImage(width, height, maxIntensity = 64000) {
   let size = width * height;
   let data = new Uint16Array(size);
 

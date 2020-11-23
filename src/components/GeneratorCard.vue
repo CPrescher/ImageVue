@@ -55,9 +55,7 @@
           <v-btn v-else class="px-2" @click="stopMovie">Stop Movie</v-btn>
         </v-col>
         <v-col>
-          <v-container>
-            FPS: {{ fps }}
-          </v-container>
+          <v-container> FPS: {{ fps }} </v-container>
         </v-col>
       </v-row>
     </v-card-text>
@@ -76,11 +74,11 @@ export default {
       movieRunning: false,
       fps: 2,
       frameTimes: [],
-      rules:[
-        v => !!v || 'Required',
-        v => v >= 1 || 'Dimension should be above 1',
-        v => v <= 3000 || 'Max dimension should not be above 5000',
-      ],
+      rules: [
+        v => !!v || "Required",
+        v => v >= 1 || "Dimension should be above 1",
+        v => v <= 3000 || "Max dimension should not be above 5000"
+      ]
     };
   },
   computed: {
@@ -135,17 +133,17 @@ export default {
       this.movieRunning = true;
       this.initMovieArray();
 
-      let t1 = Date.now()
+      let t1 = Date.now();
       this.frameTimes = [];
 
       this.movieId = setInterval(() => {
         this.nextMovieImage();
         this.frameTimes.push(Date.now() - t1);
-        this.fps = Math.floor(10000/_.mean(this.frameTimes))/10;
-        if(this.frameTimes.length>100) {
+        this.fps = Math.floor(10000 / _.mean(this.frameTimes)) / 10;
+        if (this.frameTimes.length > 100) {
           this.frameTimes.shift();
         }
-        t1 = Date.now()
+        t1 = Date.now();
       }, 1);
     },
     stopMovie() {

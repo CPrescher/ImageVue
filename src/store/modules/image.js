@@ -1,4 +1,4 @@
-import { createRandomImage } from '@/lib/image-generation';
+import { createRandomImage } from "@/lib/image-generation";
 
 const state = {
   data: createRandomImage(2048, 2048),
@@ -23,11 +23,10 @@ const mutations = {
     state.data = payload.data;
     state.width = payload.width;
     state.height = payload.height;
-  },
+  }
 };
 
-const actions = {
-};
+const actions = {};
 
 export default {
   namespaced: true,
@@ -35,4 +34,4 @@ export default {
   getters,
   mutations,
   actions
-}
+};

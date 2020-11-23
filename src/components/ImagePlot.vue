@@ -14,7 +14,7 @@
 
 <script>
 import _ from "lodash";
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
 
 import ImagePlot from "@/lib/image-plot";
 
@@ -25,14 +25,14 @@ export default {
       if (this.imagePlot) {
         this.throttleResize();
       }
-    },
+    }
   },
   computed: {
-    ...mapGetters( {
-      imageData: 'image/data',
-      imageWidth: 'image/width',
-      imageHeight: 'image/height'}
-      )
+    ...mapGetters({
+      imageData: "image/data",
+      imageWidth: "image/width",
+      imageHeight: "image/height"
+    })
   },
   watch: {
     imageData() {
@@ -47,9 +47,13 @@ export default {
       false
     );
 
-    this.throttlePlotImage = _.throttle(()=> {
-          this.imagePlot.plotImage(this.imageData, this.imageWidth, this.imageHeight);
-    },15);
+    this.throttlePlotImage = _.throttle(() => {
+      this.imagePlot.plotImage(
+        this.imageData,
+        this.imageWidth,
+        this.imageHeight
+      );
+    }, 15);
 
     this.throttleResize = _.throttle(() => {
       const width = this.$refs.graphSheet.$el.clientWidth;
